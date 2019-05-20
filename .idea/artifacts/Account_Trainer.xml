@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Account Trainer">
+    <output-path>$USER_HOME$/OSBot/Scripts</output-path>
+    <root id="archive" name="Account Trainer.jar">
+      <element id="module-output" name="Account Trainer" />
+    </root>
+  </artifact>
+</component>
