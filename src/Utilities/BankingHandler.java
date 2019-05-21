@@ -51,6 +51,15 @@ public class BankingHandler {
         script.getBank().depositAll();
     }
 
+    public void WalkDepositCloseBank(boolean closeBank) throws InterruptedException {
+        WalkToBank();
+        OpenBank();
+        DepositInventory();
+        if (closeBank) {
+            CloseBank();
+        }
+    }
+
     public boolean WithdrawEquipment(HashMap<String, Integer> map) throws InterruptedException {
         WalkToBank();
         OpenBank();
@@ -68,18 +77,29 @@ public class BankingHandler {
         return true;
     }
 
-    public boolean WithdrawWeapon(String weapon) throws InterruptedException {
+    public boolean WithdrawWeapon(String weapon, boolean close) throws InterruptedException {
+        boolean withdrew = false;
         WalkToBank();
         OpenBank();
         if (script.getBank().contains(weapon)){
             script.getBank().withdraw(weapon, 1);
+            withdrew = true;
+        }
+        if (close) {
+            CloseBank();
+        }
+        return withdrew;
+    }
+
+    public void WithdrawItem(String item, int amount) throws InterruptedException {
+        WalkToBank();
+        OpenBank();
+        if (script.getBank().contains(item)){
+            script.getBank().withdraw(item, amount);
         } else {
-            script.log("Weapon not found");
+            script.log("Item not found");
             script.stop();
         }
-
-        CloseBank();
-        return true;
     }
 
     public boolean WithdrawInventory(HashMap<String, Integer> map) throws InterruptedException {
