@@ -11,23 +11,23 @@ import org.osbot.rs07.api.model.Item;
 import org.osbot.rs07.script.Script;
 
 public class Data {
-    private static Script script;
+    private Script script;
 
     // Account type and status
     private static Enums.AccountType type;
     private static Enums.AccountStatus status;
 
     // Equipment
-    private HashMap<String, Integer> equipmentNeeded = new HashMap<String, Integer>();
+    private HashMap<String, Integer> equipmentNeeded = new HashMap<>();
     // Inventory
-    private HashMap<String, Integer> inventoryItemsAndQuantity = new HashMap<String, Integer>();
+    private HashMap<String, Integer> inventoryItemsAndQuantity = new HashMap<>();
 
     // Attack style
-    Enums.Styles currentStyle;
+    private Enums.Styles currentStyle;
 
     // Mule
-    String mule;
-    boolean mulingComplete;
+    private String mule;
+    private boolean mulingComplete;
 
     public Data(Script script){
         this.script = script;
@@ -50,7 +50,7 @@ public class Data {
         return status;
     }
 
-    public Map GetInventory(){
+    public HashMap GetInventory(){
         return inventoryItemsAndQuantity;
     }
 

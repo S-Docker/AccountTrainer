@@ -10,19 +10,19 @@ import java.util.Map.Entry;
 import java.util.HashMap;
 
 public class BankingHandler {
-    Area[] bankAreas = new Area[]{Banks.AL_KHARID, Banks.ARCEUUS_HOUSE, Banks.ARDOUGNE_NORTH, Banks.ARDOUGNE_SOUTH, Banks.CAMELOT, Banks.CANIFIS,
+    private Area[] bankAreas = new Area[]{Banks.AL_KHARID, Banks.ARCEUUS_HOUSE, Banks.ARDOUGNE_NORTH, Banks.ARDOUGNE_SOUTH, Banks.CAMELOT, Banks.CANIFIS,
             Banks.CASTLE_WARS, Banks.CATHERBY, Banks.DRAYNOR, Banks.DUEL_ARENA, Banks.EDGEVILLE, Banks.FALADOR_EAST, Banks.FALADOR_WEST,
             Banks.GNOME_STRONGHOLD, Banks.GRAND_EXCHANGE, Banks.HOSIDIUS_HOUSE, Banks.LOVAKENGJ_HOUSE, Banks.LOVAKITE_MINE,
             Banks.LUMBRIDGE_LOWER, Banks.LUMBRIDGE_UPPER, Banks.PEST_CONTROL, Banks.PISCARILIUS_HOUSE, Banks.SHAYZIEN_HOUSE,
             Banks.TZHAAR, Banks.VARROCK_EAST, Banks.VARROCK_WEST, Banks.YANILLE};
 
-    private static Script script;
+    private Script script;
 
     public BankingHandler(Script script){
         this.script = script;
     }
 
-    public void WalkToBank(){
+    private void WalkToBank(){
         script.getWalking().webWalk(bankAreas);
     }
 
@@ -43,16 +43,15 @@ public class BankingHandler {
         }
     }
 
-    public void CloseBank() throws InterruptedException {
+    public void CloseBank() {
         script.getBank().close();
     }
 
-    public void DepositInventory() throws InterruptedException {
+    public void DepositInventory() {
         script.getBank().depositAll();
     }
 
     public boolean WithdrawEquipment(HashMap<String, Integer> map) throws InterruptedException {
-        HashMap<String, Integer> equip = map;
         WalkToBank();
         OpenBank();
 
@@ -83,7 +82,20 @@ public class BankingHandler {
         return true;
     }
 
-    public void WithdrawInventory(Map map) throws InterruptedException {
+    public boolean WithdrawInventory(HashMap<String, Integer> map) throws InterruptedException {
+        WalkToBank();
+        OpenBank();
 
+        for (Map.Entry<String, Integer> entry : map.entrySet()) {
+            if (script.getBank().contains(entry.getKey())) {
+                script.getBank().withdraw(entry.getKey(), entry.getValue());
+            } else {
+                script.log("Inventory Item " + entry.getKey() + " not found");
+                script.stop();
+            }
+        }
+
+        CloseBank();
+        return true;
     }
 }

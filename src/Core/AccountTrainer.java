@@ -11,6 +11,8 @@ import org.osbot.rs07.api.ui.Skill;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
 import org.osbot.rs07.utility.ConditionalSleep;
+import org.osbot.rs07.script.RandomSolver;
+import org.osbot.rs07.script.RandomEvent;
 
 import javax.swing.*;
 import java.lang.reflect.InvocationTargetException;
@@ -27,10 +29,11 @@ public class AccountTrainer extends Script {
     private static AttackStyleHandler attackStyleHandler;
     private static BankingHandler bank;
     private static RandomUtil randomUtil = new RandomUtil();
+    private static RandomSolver solver;
 
     // State handler
-    enum PlayerStates { MULE, ARMOREQUIPMENT, EQUIPARMOR, WEAPONEQUIPMENT, EVENTRPG, INVENTORY, BANKING, TRAIN };
-    PlayerStates currentState;
+    enum PlayerStates { MULE, ARMOREQUIPMENT, EQUIPARMOR, WEAPONEQUIPMENT, EVENTRPG, INVENTORY, BANKING, TRAIN, BREAK }
+    private PlayerStates currentState;
 
 
     /** ____________________
@@ -42,10 +45,11 @@ public class AccountTrainer extends Script {
         data = new Data(this);
         attackStyleHandler = new AttackStyleHandler(this);
         bank = new BankingHandler(this);
+        CustomBreakHandler();
     }
 
     @Override
-    public void onStart() throws InterruptedException {
+    public void onStart() {
         GuiInitializer();
 
         Enums.Styles currentStyle = attackStyleHandler.GetStartingStyle();
@@ -87,9 +91,6 @@ public class AccountTrainer extends Script {
             default:
                 break;
         }
-        if(data.GetAccountStatus() == Enums.AccountStatus.FRESH_ACCOUNT) {
-
-        }
 
         return randomUtil.gRandomBetween(200, 800); //The amount of time in milliseconds before the loop starts over
     }
@@ -114,7 +115,7 @@ public class AccountTrainer extends Script {
         gui.PassData();
     }
 
-    void Muling() throws InterruptedException {
+    private void Muling() throws InterruptedException {
         if(!Banks.LUMBRIDGE_UPPER.contains(myPosition())) {
             getWalking().webWalk(Banks.LUMBRIDGE_UPPER);
         }
@@ -148,7 +149,7 @@ public class AccountTrainer extends Script {
         }
     }
 
-    void ArmorEquipmentSetup() throws InterruptedException {
+    private void ArmorEquipmentSetup() throws InterruptedException {
         if (!equipment.isWearingItem(EquipmentSlot.CAPE, "Team-13 cape")){
             data.AddEquipmentToEquip("Team-13 cape", 1);
         }
@@ -184,7 +185,7 @@ public class AccountTrainer extends Script {
         }
     }
 
-    public void EquipArmor() throws InterruptedException {
+    private void EquipArmor() throws InterruptedException {
         List<Item> armor = inventory.filter( item -> item.hasAction("Wear"));
         for (Item item : armor){
             item.interact("Wear");
@@ -194,7 +195,7 @@ public class AccountTrainer extends Script {
         currentState = PlayerStates.WEAPONEQUIPMENT;
     }
 
-    public void WeaponEquipmentSetup() throws InterruptedException {
+    private void WeaponEquipmentSetup() throws InterruptedException {
         String weaponName;
         if(data.GetAccountType() == Enums.AccountType.OBBY_MAUL) {
             if (!getEquipment().isWearingItem(EquipmentSlot.WEAPON, "Event rpg")) {
@@ -239,10 +240,32 @@ public class AccountTrainer extends Script {
         currentState = PlayerStates.WEAPONEQUIPMENT;
     }
 
-    public void WithdrawInventory(){
-
+    private void WithdrawInventory() throws  InterruptedException {
+        data.AddInventoryItem("Tuna", 28);
+        if(!data.GetInventory().isEmpty()){
+                bank.WithdrawInventory(data.GetInventory());
+                currentState = PlayerStates.TRAIN;
+        }
     }
 
+    private void CustomBreakHandler(){
+        solver = new RandomSolver(RandomEvent.BREAK_MANAGER) {
+            @Override
+            public boolean shouldActivate() {
+                //Condition for the break manager to be activated
+                return false;
+            }
+
+            @Override
+            public int onLoop() throws InterruptedException {
+                //Code which executes while the break manager is activated
+                return 0;
+            }
+        };
+        bot.getRandomExecutor().overrideOSBotRandom(solver);
+    }
+
+    /**
     public void SelectStartingInventory(){
         switch(data.GetAccountType()) {
             case F2P_MELEE:
@@ -254,4 +277,5 @@ public class AccountTrainer extends Script {
                 break;
         }
     }
+     */
 }
