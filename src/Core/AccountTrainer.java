@@ -488,6 +488,12 @@ public class AccountTrainer extends Script {
                             attackStyleHandler.SwitchAttackStyle(Enums.Styles.ATTACK, Enums.Styles.STRENGTH);
                             data.SetCurrentStyle(Enums.Styles.STRENGTH);
                         }
+                        new ConditionalSleep(10000) {
+                            @Override
+                            public boolean condition() {
+                                return !myPlayer().isUnderAttack();
+                            }
+                        }.sleep();
                         WeaponEquipmentSetup();
                         currentState = PlayerStates.WEAPONEQUIPMENT;
                     }
@@ -504,17 +510,12 @@ public class AccountTrainer extends Script {
         }
     }
 
-    private void EatFood(){
+    private void EatFood() throws InterruptedException {
         List<Item> food = inventory.filter( item -> item.hasAction("Eat") );
         if (!food.isEmpty()){
             food.get(0).interact("Eat");
         }
-        new ConditionalSleep(5000) {
-            @Override
-            public boolean condition() {
-                return !myPlayer().isAnimating();
-            }
-        }.sleep();
+        sleep(500);
     }
 
     private void Banking() throws InterruptedException {
