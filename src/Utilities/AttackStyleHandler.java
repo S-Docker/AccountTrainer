@@ -12,10 +12,27 @@ import org.osbot.rs07.script.Script;
 public class AttackStyleHandler {
     private static Script script;
 
+    /* **************************************************
+     *                                                  *
+     *                  Constructors                    *
+     *                                                  *
+     ****************************************************/
+
+     /*
+     * Set script equal to the script that instantiated this class
+     *
+     * @param script - Reference to the script that created an instance
+     *
+     */
     public AttackStyleHandler(Script script){
         this.script = script;
     }
 
+    /* **************************************************
+     *                                                  *
+     *                  Methods                         *
+     *                                                  *
+     ****************************************************/
     public Enums.Styles GetStartingStyle() {
         int attackOptions = script.getConfigs().get(43);
         switch (attackOptions){

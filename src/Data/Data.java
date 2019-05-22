@@ -11,6 +11,11 @@ import org.osbot.rs07.api.model.Item;
 import org.osbot.rs07.script.Script;
 
 public class Data {
+    /* **************************************************
+     *                                                  *
+     *                      Fields                      *
+     *                                                  *
+     ****************************************************/
     private Script script;
 
     // Account type and status
@@ -19,6 +24,7 @@ public class Data {
 
     // Equipment
     private HashMap<String, Integer> equipmentNeeded = new HashMap<>();
+
     // Inventory
     private HashMap<String, Integer> inventoryItemsAndQuantity = new HashMap<>();
 
@@ -29,11 +35,33 @@ public class Data {
     private String mule;
     private boolean mulingComplete;
 
+    // Combat stats
+    private int attackLevel;
+    private int strengthLevel;
+
+    /* **************************************************
+     *                                                  *
+     *                  Constructors                    *
+     *                                                  *
+     ****************************************************/
+
+    /*
+     * Set script equal to the script that instantiated this class
+     * set MulingComplete to false
+     *
+     * @param script - Reference to the script that created an instance
+     *
+     */
     public Data(Script script){
         this.script = script;
         mulingComplete = false;
     }
 
+    /* **************************************************
+     *                                                  *
+     *                  Methods                         *
+     *                                                  *
+     ****************************************************/
     public void SetAccountType(Enums.AccountType type) {
         Data.type = type;
     }
@@ -89,4 +117,21 @@ public class Data {
     public HashMap GetEquipmentToEquip(){
         return equipmentNeeded;
     }
+
+    public int GetAttackLevel(){
+        return attackLevel ;
+    }
+
+    public void SetAttackLevel(int level){
+        this.attackLevel = level;
+    }
+
+    public int GetStrengthLevel(){
+        return strengthLevel;
+    }
+
+    public void SetStrengthLevel(int level){
+        this.strengthLevel = level;
+    }
+
 }

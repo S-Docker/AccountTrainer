@@ -7,15 +7,39 @@ import org.osbot.rs07.api.model.Player;
 import org.osbot.rs07.utility.ConditionalSleep;
 
 public class MuleHandler {
+    /* **************************************************
+     *                                                  *
+     *                      Fields                      *
+     *                                                  *
+     ****************************************************/
     private static Script script;
     private String mule;
     RandomUtil gRandom = new RandomUtil();
 
+    /* **************************************************
+     *                                                  *
+     *                  Constructors                    *
+     *                                                  *
+     ****************************************************/
+
+    /*
+     * Set script equal to the script that instantiated this class
+     * Set mule equal to the name of mule provided during instantiation
+     *
+     * @param script - Reference to the script that created an instance
+     * @param mule - Reference to the name of mule provided during instantiation
+     *
+     */
     public MuleHandler(Script script, String mule){
         this.script = script;
         this.mule = mule;
     }
 
+    /* **************************************************
+     *                                                  *
+     *                  Methods                         *
+     *                                                  *
+     ****************************************************/
     private boolean MuleFound(){
         boolean found = false;
 

@@ -14,18 +14,39 @@ import java.util.Map;
 import java.util.HashMap;
 
 public class Gui {
+    /* **************************************************
+     *                                                  *
+     *                      Fields                      *
+     *                                                  *
+     ****************************************************/
     private final JDialog mainDialog;
     private Data data;
     private boolean started;
 
     Map<String, Integer> selectedInventory = new HashMap<String, Integer>();
     Map<String, Integer> itemsNeeded = new HashMap<>();
+
     String accountType;
     String muleName;
     Enums.AccountStatus accountStatus;
     final JComboBox<Enums.AccountStatus> accountStatusSelector;
     final JComboBox<Enums.AccountType> accountTypeSelector;
 
+    /* **************************************************
+     *                                                  *
+     *                  Constructors                    *
+     *                                                  *
+     ****************************************************/
+
+    /*
+     * Set script equal to the script that instantiated this class
+     * Create new GUI layout with necessary panels, text fields and buttons
+     * using java swing and then pack pack.
+     *
+     * @param script - Reference to the script that created an instance
+     * @param data - Reference to the data instance instantiated by script
+     *
+     */
     public Gui(Script script, Data data){
         this.data = data;
         mainDialog = new JDialog();
@@ -153,6 +174,11 @@ public class Gui {
         mainDialog.pack();
     }
 
+    /* **************************************************
+     *                                                  *
+     *                  Methods                         *
+     *                                                  *
+     ****************************************************/
     public boolean isStarted() {
         return started;
     }

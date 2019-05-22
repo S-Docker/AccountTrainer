@@ -10,6 +10,11 @@ import java.util.Map.Entry;
 import java.util.HashMap;
 
 public class BankingHandler {
+    /* **************************************************
+     *                                                  *
+     *                      Fields                      *
+     *                                                  *
+     ****************************************************/
     private Area[] bankAreas = new Area[]{Banks.AL_KHARID, Banks.ARCEUUS_HOUSE, Banks.ARDOUGNE_NORTH, Banks.ARDOUGNE_SOUTH, Banks.CAMELOT, Banks.CANIFIS,
             Banks.CASTLE_WARS, Banks.CATHERBY, Banks.DRAYNOR, Banks.DUEL_ARENA, Banks.EDGEVILLE, Banks.FALADOR_EAST, Banks.FALADOR_WEST,
             Banks.GNOME_STRONGHOLD, Banks.GRAND_EXCHANGE, Banks.HOSIDIUS_HOUSE, Banks.LOVAKENGJ_HOUSE, Banks.LOVAKITE_MINE,
@@ -18,11 +23,28 @@ public class BankingHandler {
 
     private Script script;
 
+    /* **************************************************
+     *                                                  *
+     *                  Constructors                    *
+     *                                                  *
+     ****************************************************/
+
+    /*
+     * Set script equal to the script that instantiated this class
+     *
+     * @param script - Reference to the script that created an instance
+     *
+     */
     public BankingHandler(Script script){
         this.script = script;
     }
 
-    private void WalkToBank(){
+    /* **************************************************
+     *                                                  *
+     *                  Methods                         *
+     *                                                  *
+     ****************************************************/
+    public void WalkToBank(){
         script.getWalking().webWalk(bankAreas);
     }
 
@@ -49,15 +71,6 @@ public class BankingHandler {
 
     public void DepositInventory() {
         script.getBank().depositAll();
-    }
-
-    public void WalkDepositCloseBank(boolean closeBank) throws InterruptedException {
-        WalkToBank();
-        OpenBank();
-        DepositInventory();
-        if (closeBank) {
-            CloseBank();
-        }
     }
 
     public boolean WithdrawEquipment(HashMap<String, Integer> map) throws InterruptedException {
