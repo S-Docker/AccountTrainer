@@ -10,6 +10,7 @@ import org.osbot.rs07.api.map.constants.Banks;
 import org.osbot.rs07.api.model.NPC;
 import org.osbot.rs07.api.ui.EquipmentSlot;
 import org.osbot.rs07.api.model.Item;
+import org.osbot.rs07.api.ui.Message;
 import org.osbot.rs07.api.ui.Skill;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
@@ -39,6 +40,8 @@ public class AccountTrainer extends Script {
     // State handler
     private enum PlayerStates { MULE, ARMOREQUIPMENT, EQUIPARMOR, WEAPONEQUIPMENT, EVENTRPG, INVENTORY, BANKING, WALKTOSPOT, TRAIN, AFK }
     private PlayerStates currentState;
+
+    private boolean levelUpDetected = false;
 
     // Areas
     private Area cowArea = new Area(
@@ -84,24 +87,46 @@ public class AccountTrainer extends Script {
      * If the account is a fresh class then set our state to MULE to initiate trade with mule for starting items
      * otherwise set state to ARMOREQUIPMENT and begin checking/equipping gear required for account type.
      *
+     * Set the attack and strength level milestones based on account type.
      */
     @Override
     public void onStart() {
         GuiInitializer();
 
-        data.SetCurrentStyle(attackStyleHandler.GetStartingStyle());
+        data.SetCurrentStyle(attackStyleHandler.GetAttackStyle());
 
         getBot().addPainter(new PaintHandler());
 
-        if(data.GetAccountStatus() == Enums.AccountStatus.FRESH_ACCOUNT){
+        if(myPlayer().getCombatLevel() == 3){
             currentState = PlayerStates.MULE;
         } else {
             currentState = PlayerStates.ARMOREQUIPMENT;
         }
+
+        data.SetStartingAttackLevel(GetLevel(Skill.ATTACK));
+        data.SetStartingStrengthLevel(GetLevel(Skill.STRENGTH));
+
+        data.CalcAttackLevelMilestones();
+        data.CalcStrengthLevelMilestones();
     }
 
     @Override
     public int onLoop() throws InterruptedException {
+        if (myPlayer().getHealthPercent() < randomUtil.gRandomBetween(15,35)){
+            sleep(randomUtil.gRandomBetween(500, 3000));
+            EatFood();
+        }
+        new ConditionalSleep(5000) {
+            @Override
+            public boolean condition() {
+                return !myPlayer().isAnimating();
+            }
+        }.sleep();
+
+        if (settings.getRunEnergy() > random(20,45) && !settings.isRunning() && !myPlayer().isUnderAttack()){
+            settings.setRunning(true);
+        }
+
         switch(currentState){
             case MULE:
                 Muling();
@@ -130,6 +155,10 @@ public class AccountTrainer extends Script {
                 break;
             case TRAIN:
                 TrainCombat();
+                break;
+
+            case BANKING:
+                Banking();
                 break;
 
             default:
@@ -241,16 +270,20 @@ public class AccountTrainer extends Script {
         }
 
         if (data.GetEquipmentToEquip().isEmpty()) {
+            sleep(randomUtil.gRandomBetween(300, 500));
             currentState = PlayerStates.WEAPONEQUIPMENT;
         } else {
             if (inventory.getEmptySlotCount() < 28){
                 bank.WalkToBank();
                 bank.OpenBank();
+                sleep(randomUtil.gRandomBetween(300, 500));
                 bank.DepositInventory();
+                sleep(randomUtil.gRandomBetween(300, 500));
                 bank.CloseBank();
             }
             log("Withdrawing armor");
             if (bank.WithdrawEquipment(data.GetEquipmentToEquip())) { // Attempt to withdraw items needed and return true if successful
+                sleep(randomUtil.gRandomBetween(300, 500));
                 currentState = PlayerStates.EQUIPARMOR;
             }
         }
@@ -260,7 +293,7 @@ public class AccountTrainer extends Script {
         List<Item> armor = inventory.filter( item -> item.hasAction("Wear"));
         for (Item item : armor){
             item.interact("Wear");
-            sleep(randomUtil.gRandomBetween(100, 300));
+            sleep(randomUtil.gRandomBetween(200, 400));
         }
         sleep(randomUtil.gRandomBetween(300, 500));
         currentState = PlayerStates.WEAPONEQUIPMENT;
@@ -278,6 +311,9 @@ public class AccountTrainer extends Script {
     private void WeaponEquipmentSetup() throws InterruptedException {
         String weaponName;
         if(data.GetAccountType() == Enums.AccountType.OBBY_MAUL) {
+        attackStyleHandler.SwitchAttackStyle(data.GetCurrentStyle(), Enums.Styles.STRENGTH);
+        data.SetCurrentStyle(Enums.Styles.STRENGTH);
+            sleep(randomUtil.gRandomBetween(300, 500));
             if (!getEquipment().isWearingItem(EquipmentSlot.WEAPON, "Event rpg")) {
                 if (inventory.contains("Event rpg")){
                     getInventory().getItem("Event rpg").interact("Wield");
@@ -341,6 +377,7 @@ public class AccountTrainer extends Script {
             }.sleep();
             sleep(randomUtil.gRandomBetween(300, 500));
         } else if (!store.isOpen() && !myPlayer().isMoving()) {
+            log("open shop");
             NPC diango = npcs.closest("Diango");
             if (diango != null) {
                 diango.interact("Trade");
@@ -352,15 +389,18 @@ public class AccountTrainer extends Script {
                     }
                 }.sleep();
                 sleep(randomUtil.gRandomBetween(300, 500));
-                store.buy("Event rpg", 1);
-                new ConditionalSleep(5000) {
-                    @Override
-                    public boolean condition() {
-                        return inventory.contains("Event rpg");
-                    }
-                }.sleep();
-                store.close();
             }
+        } else if (store.isOpen()){
+            store.buy("Event rpg", 1);
+            new ConditionalSleep(5000) {
+                @Override
+                public boolean condition() {
+                    return inventory.contains("Event rpg");
+                }
+            }.sleep();
+            sleep(randomUtil.gRandomBetween(300, 500));
+            store.close();
+            currentState = PlayerStates.WEAPONEQUIPMENT;
         }
     }
 
@@ -368,17 +408,17 @@ public class AccountTrainer extends Script {
     private void WithdrawInventory() throws  InterruptedException {
         log("Withdrawing inventory");
         data.AddInventoryItem("Tuna", 28);
-        if (inventory.getEmptySlotCount() < 28){
+        if (!inventory.contains("Tuna")){
             bank.WalkToBank();
             bank.OpenBank();
+            sleep(randomUtil.gRandomBetween(300, 500));
             bank.DepositInventory();
-        }
-        sleep(randomUtil.gRandomBetween(200, 300));
-        if (!getInventory().contains("Tuna") && inventory.getAmount("Tuna") < 28) {
+
             if (!data.GetInventory().isEmpty()) {
                 bank.WithdrawInventory(data.GetInventory());
             }
         }
+        sleep(randomUtil.gRandomBetween(300, 500));
         currentState = PlayerStates.WALKTOSPOT;
     }
 
@@ -391,28 +431,34 @@ public class AccountTrainer extends Script {
     }
 
 
-    private void TrainCombat(){
-        if (GetLevel(Skill.ATTACK) < 20 && GetLevel(Skill.STRENGTH) < 20){
-            
-        }
+    private void TrainCombat() throws InterruptedException{
+        IfChangeAttackStyleNeeded();
 
         NPC cow = npcs.closest(new Filter<NPC>() {
             @Override
             public boolean match(NPC npc) {
                 return npc != null && npc.getName().contains("Cow") && !npc.getName().contains("Dairy")
-                        && !npc.isUnderAttack() && npc.isAttackable();
+                        && !npc.isUnderAttack() && npc.isAttackable() && cowArea.contains(npc);
 
             }
         });
-        log(cow != null);
+
         if (!myPlayer().isMoving() && !myPlayer().isUnderAttack() && cow != null && !getCombat().isFighting()) {
+            sleep(randomUtil.gRandomBetween(300, 500));
             cow.interact("Attack");
-            new ConditionalSleep(500) {
+            new ConditionalSleep(5000) {
                 @Override
                 public boolean condition() {
                     return getCombat().isFighting();
                 }
             }.sleep();
+        }
+
+        if(!myPlayer().isUnderAttack()){
+            if (!inventory.contains("Tuna")){
+                sleep(randomUtil.gRandomBetween(300, 500));
+                currentState = PlayerStates.BANKING;
+            }
         }
     }
     private void SimulateAfk(PlayerStates previousState) throws InterruptedException {
@@ -420,8 +466,61 @@ public class AccountTrainer extends Script {
         currentState = previousState;
     }
 
+    @Override
+    public void onMessage(Message msg){
+        String message = msg.getMessage();
+        if (message.contains("just advanced")) {
+            levelUpDetected = true;
+        }
+    }
+
     private int GetLevel(Skill skill){
         return getSkills().getStatic(skill);
+    }
+
+    private void IfChangeAttackStyleNeeded() throws InterruptedException{
+        if (levelUpDetected == true){
+            randomUtil.gRandomBetween(300,1500);
+            if(data.GetAccountType() != Enums.AccountType.OBBY_MAUL){
+                if (attackStyleHandler.GetAttackStyle() == Enums.Styles.ATTACK){
+                    if (data.CheckAttackLevelMilestone(GetLevel(Skill.ATTACK))){
+                        if (GetLevel(Skill.STRENGTH) < data.GetGoalStrengthLevel()) {
+                            attackStyleHandler.SwitchAttackStyle(Enums.Styles.ATTACK, Enums.Styles.STRENGTH);
+                            data.SetCurrentStyle(Enums.Styles.STRENGTH);
+                        }
+                        WeaponEquipmentSetup();
+                        currentState = PlayerStates.WEAPONEQUIPMENT;
+                    }
+                } else if (attackStyleHandler.GetAttackStyle() == Enums.Styles.STRENGTH) {
+                    if (data.CheckStrengthLevelMilestone(GetLevel(Skill.STRENGTH))) {
+                        if (GetLevel(Skill.ATTACK) < data.GetGoalAttackLevel()) {
+                            attackStyleHandler.SwitchAttackStyle(Enums.Styles.STRENGTH, Enums.Styles.ATTACK);
+                            data.SetCurrentStyle(Enums.Styles.ATTACK);
+                        }
+                    }
+                }
+            }
+            levelUpDetected = false;
+        }
+    }
+
+    private void EatFood(){
+        List<Item> food = inventory.filter( item -> item.hasAction("Eat") );
+        if (!food.isEmpty()){
+            food.get(0).interact("Eat");
+        }
+        new ConditionalSleep(5000) {
+            @Override
+            public boolean condition() {
+                return !myPlayer().isAnimating();
+            }
+        }.sleep();
+    }
+
+    private void Banking() throws InterruptedException {
+        WeaponEquipmentSetup();
+        WithdrawInventory();
+        currentState = PlayerStates.WALKTOSPOT;
     }
 
     /**

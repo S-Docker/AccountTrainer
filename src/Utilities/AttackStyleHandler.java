@@ -10,7 +10,7 @@ import org.osbot.rs07.script.Script;
 
 
 public class AttackStyleHandler {
-    private static Script script;
+    private Script script;
 
     /* **************************************************
      *                                                  *
@@ -33,7 +33,7 @@ public class AttackStyleHandler {
      *                  Methods                         *
      *                                                  *
      ****************************************************/
-    public Enums.Styles GetStartingStyle() {
+    public Enums.Styles GetAttackStyle() {
         int attackOptions = script.getConfigs().get(43);
         switch (attackOptions){
             case 0:

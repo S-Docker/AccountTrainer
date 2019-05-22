@@ -70,7 +70,9 @@ public class BankingHandler {
     }
 
     public void DepositInventory() {
-        script.getBank().depositAll();
+        if (script.inventory.getEmptySlotCount() < 28) {
+            script.getBank().depositAll();
+        }
     }
 
     public boolean WithdrawEquipment(HashMap<String, Integer> map) throws InterruptedException {

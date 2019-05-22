@@ -36,8 +36,12 @@ public class Data {
     private boolean mulingComplete;
 
     // Combat stats
-    private int attackLevel;
-    private int strengthLevel;
+    private int startingAttackLevel;
+    private int startingStrengthLevel;
+    private int goalAttackLevel;
+    private int goalStrengthLevel;
+    private List<Integer> attackLevelMilestones = new ArrayList<>();
+    private List<Integer> strengthLevelMilestones = new ArrayList<>();
 
     /* **************************************************
      *                                                  *
@@ -118,20 +122,63 @@ public class Data {
         return equipmentNeeded;
     }
 
-    public int GetAttackLevel(){
-        return attackLevel ;
+    public int GetStartingAttackLevel(){
+        return startingAttackLevel;
     }
 
-    public void SetAttackLevel(int level){
-        this.attackLevel = level;
+    public void SetStartingAttackLevel(int level){
+        this.startingAttackLevel = level;
     }
 
-    public int GetStrengthLevel(){
-        return strengthLevel;
+    public int GetStartingStrengthLevel(){
+        return startingStrengthLevel;
     }
 
-    public void SetStrengthLevel(int level){
-        this.strengthLevel = level;
+    public void SetStartingStrengthLevel(int level){
+        this.startingStrengthLevel = level;
     }
 
+    public int GetGoalAttackLevel(){
+        return goalAttackLevel;
+    }
+
+    public void SetGoalAttackLevel(int level){
+        this.goalAttackLevel = level;
+    }
+
+    public int GetGoalStrengthLevel(){
+        return goalStrengthLevel;
+    }
+
+    public void SetGoalStrengthLevel(int level){
+        this.goalStrengthLevel = level;
+    }
+
+    public void CalcAttackLevelMilestones(){
+        for (int i = 1; ((i + 10) / 10) * 10 <= goalAttackLevel; i += 10){
+            attackLevelMilestones.add(((i + 10) / 10) * 10);
+        }
+    }
+
+    public void CalcStrengthLevelMilestones(){
+        for (int i = 1; ((i + 10) / 10) * 10 <= goalStrengthLevel; i += 10){
+            strengthLevelMilestones.add(((i + 10) / 10) * 10);
+        }
+    }
+
+    public List<Integer> GetAttackLevelMilestones(){
+        return attackLevelMilestones;
+    }
+
+    public List<Integer> GetStrengthLevelMilestones(){
+        return strengthLevelMilestones;
+    }
+
+    public boolean CheckAttackLevelMilestone(int level){
+        return attackLevelMilestones.contains(level);
+    }
+
+    public boolean CheckStrengthLevelMilestone(int level){
+        return strengthLevelMilestones.contains(level);
+    }
 }

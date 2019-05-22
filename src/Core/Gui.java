@@ -13,7 +13,7 @@ import java.awt.event.KeyEvent;
 import java.util.Map;
 import java.util.HashMap;
 
-public class Gui {
+class Gui {
     /* **************************************************
      *                                                  *
      *                      Fields                      *
@@ -23,14 +23,14 @@ public class Gui {
     private Data data;
     private boolean started;
 
-    Map<String, Integer> selectedInventory = new HashMap<String, Integer>();
+    Map<String, Integer> selectedInventory = new HashMap<>();
     Map<String, Integer> itemsNeeded = new HashMap<>();
 
     String accountType;
-    String muleName;
+    private String muleName;
     Enums.AccountStatus accountStatus;
-    final JComboBox<Enums.AccountStatus> accountStatusSelector;
-    final JComboBox<Enums.AccountType> accountTypeSelector;
+    //final JComboBox<Enums.AccountStatus> accountStatusSelector;
+    private final JComboBox<Enums.AccountType> accountTypeSelector;
 
     /* **************************************************
      *                                                  *
@@ -47,7 +47,7 @@ public class Gui {
      * @param data - Reference to the data instance instantiated by script
      *
      */
-    public Gui(Script script, Data data){
+    Gui(Script script, Data data){
         this.data = data;
         mainDialog = new JDialog();
         mainDialog.setTitle("Account Trainer");
@@ -75,7 +75,7 @@ public class Gui {
 
         /**
          * Account Status Selection
-         */
+         *
         JPanel accountStatusSelectionPanel = new JPanel();
         accountStatusSelectionPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
 
@@ -86,6 +86,7 @@ public class Gui {
         accountStatusSelectionPanel.add(accountStatusSelector);
 
         mainPanel.add(accountStatusSelectionPanel);
+         */
 
         /**
          * Mule Selection
@@ -101,34 +102,53 @@ public class Gui {
 
         mainPanel.add(muleSelectionPanel);
 
+
         /**
+         *  Goal levels Selection
          *
-         * Inventory Item Selection
+         JPanel goalAttackLevelPanel = new JPanel();
+         goalAttackLevelPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
 
-        JPanel inventorySelectionPanel = new JPanel();
-        inventorySelectionPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+         JLabel goalAttackLevelLabel = new JLabel("Attack level goal: ");
+         goalAttackLevelPanel.add(goalAttackLevelLabel);
 
-        JLabel inventorySelectionLabel = new JLabel("Select inventory item: ");
-        inventorySelectionPanel.add(inventorySelectionLabel);
-
-        JTextField chooseInventoryItems = new JTextField(20);
-        inventorySelectionPanel.add((chooseInventoryItems));
-
-        JLabel quantitySelectionLabel = new JLabel("Select quantity: ");
-        inventorySelectionPanel.add(quantitySelectionLabel);
-
-        JTextField chooseInventoryQuantity = new JTextField(2);
-        chooseInventoryQuantity.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyTyped(KeyEvent e) {
-                char c = e.getKeyChar();
-                if (!((c >= '0') && (c <= '9') || (c == KeyEvent.VK_BACK_SPACE) || (c == KeyEvent.VK_DELETE))) {
-                    e.consume();
-                }
-            }
+         JTextField goalAttackLevelField = new JTextField(2);
+         goalAttackLevelField.addKeyListener(new KeyAdapter() {
+        @Override
+        public void keyTyped(KeyEvent e) {
+        char c = e.getKeyChar();
+        if (!((c >= '0') && (c <= '9') || (c == KeyEvent.VK_BACK_SPACE) || (c == KeyEvent.VK_DELETE))) {
+        e.consume();
+        }
+        }
         });
-        inventorySelectionPanel.add(chooseInventoryQuantity);
+         goalAttackLevelPanel.add(goalAttackLevelField);
 
+         mainPanel.add(goalAttackLevelPanel);
+
+         JPanel goalStrengthLevelPanel = new JPanel();
+         goalStrengthLevelPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+
+         JLabel goalStrengthLevelLabel = new JLabel("Strength level goal: ");
+         goalStrengthLevelPanel.add(goalStrengthLevelLabel);
+
+         JTextField goalStrengthLevelField = new JTextField(2);
+         goalStrengthLevelField.addKeyListener(new KeyAdapter() {
+        @Override
+        public void keyTyped(KeyEvent e) {
+        char c = e.getKeyChar();
+        if (!((c >= '0') && (c <= '9') || (c == KeyEvent.VK_BACK_SPACE) || (c == KeyEvent.VK_DELETE))) {
+        e.consume();
+        }
+        }
+        });
+         goalStrengthLevelPanel.add(goalStrengthLevelField);
+
+         mainPanel.add(goalStrengthLevelPanel);
+
+         /**
+         * Inventory manager
+         *
         JPanel addedItemsPanel = new JPanel();
         addedItemsPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
 
@@ -161,6 +181,7 @@ public class Gui {
         mainPanel.add(inventorySelectionPanel);
         mainPanel.add(addedItemsPanel);
          */
+
         /**
          * Start button
          */
@@ -168,6 +189,7 @@ public class Gui {
         startButton.addActionListener(e -> {
             started = true;
             muleName = muleNameField.getText();
+
             Close();
         });
         mainPanel.add(startButton);
@@ -179,23 +201,24 @@ public class Gui {
      *                  Methods                         *
      *                                                  *
      ****************************************************/
-    public boolean isStarted() {
+    boolean isStarted() {
         return started;
     }
 
-    public Enums.AccountType getSelectedAccountType() {
+    private Enums.AccountType getSelectedAccountType() {
         return (Enums.AccountType) accountTypeSelector.getSelectedItem();
     }
 
+    /**
     public Enums.AccountStatus getSelectedAccountStatus() {
         return (Enums.AccountStatus) accountStatusSelector.getSelectedItem();
-    }
+    }*/
 
-    public void Open(){
+    void Open(){
         mainDialog.setVisible(true);
     }
 
-    public void Close(){
+    private void Close(){
         mainDialog.setVisible(false);
         mainDialog.dispose();
     }
@@ -204,10 +227,18 @@ public class Gui {
     // temporaryInventory.put
     // Return to AccountTrainer
 
-    public void PassData(){
+    void PassData(){
         data.SetAccountType(getSelectedAccountType());
-        data.SetAccountStatus(getSelectedAccountStatus());
+        //data.SetAccountStatus(getSelectedAccountStatus());
         //data.SetInventory(selectedInventory);
         data.SetMule(muleName);
+
+        if (getSelectedAccountType() == Enums.AccountType.OBBY_MAUL){
+            data.SetGoalAttackLevel(1);
+            data.SetGoalStrengthLevel(60);
+        } else if (getSelectedAccountType() == Enums.AccountType.F2P_MELEE){
+            data.SetGoalAttackLevel(40);
+            data.SetGoalStrengthLevel(60);
+        }
     }
 }
