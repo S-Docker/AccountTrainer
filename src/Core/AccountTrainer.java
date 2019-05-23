@@ -38,10 +38,12 @@ public class AccountTrainer extends Script {
     private static RandomUtil randomUtil = new RandomUtil();
 
     // State handler
-    private enum PlayerStates { MULE, ARMOREQUIPMENT, EQUIPARMOR, WEAPONEQUIPMENT, EVENTRPG, INVENTORY, BANKING, WALKTOSPOT, TRAIN, AFK }
+    private enum PlayerStates { MULE, ARMOREQUIPMENT, EQUIPARMOR, WEAPONEQUIPMENT, EVENTRPG, INVENTORY, BANKING, WALKTOSPOT, TRAIN, BREAKING }
     private PlayerStates currentState;
+    private PlayerStates previousState;
 
-    private boolean levelUpDetected = false;
+    private boolean attackLevelUpDetected = false;
+    private boolean strengthLevelUpDetected = false;
 
     // Areas
     private Area cowArea = new Area(
@@ -108,23 +110,32 @@ public class AccountTrainer extends Script {
 
         data.CalcAttackLevelMilestones();
         data.CalcStrengthLevelMilestones();
+
+        previousState = currentState;
     }
 
     @Override
     public int onLoop() throws InterruptedException {
-        if (myPlayer().getHealthPercent() < randomUtil.gRandomBetween(15,35)){
-            sleep(randomUtil.gRandomBetween(500, 3000));
-            EatFood();
-        }
-        new ConditionalSleep(5000) {
-            @Override
-            public boolean condition() {
-                return !myPlayer().isAnimating();
+        log("Current " + currentState);
+        log("Prev " + previousState);
+        if (currentState != PlayerStates.BREAKING && CheckTimeTilBreak() == true){
+            previousState = currentState;
+            currentState = PlayerStates.BREAKING;
+        } else {
+            if (myPlayer().getHealthPercent() < randomUtil.gRandomBetween(15, 35)) {
+                sleep(randomUtil.gRandomBetween(500, 3000));
+                EatFood();
             }
-        }.sleep();
+            new ConditionalSleep(5000) {
+                @Override
+                public boolean condition() {
+                    return !myPlayer().isAnimating();
+                }
+            }.sleep();
 
-        if (settings.getRunEnergy() > random(20,45) && !settings.isRunning() && !myPlayer().isUnderAttack()){
-            settings.setRunning(true);
+            if (settings.getRunEnergy() > random(20, 45) && !settings.isRunning() && !myPlayer().isUnderAttack()) {
+                settings.setRunning(true);
+            }
         }
 
         switch(currentState){
@@ -159,6 +170,10 @@ public class AccountTrainer extends Script {
 
             case BANKING:
                 Banking();
+                break;
+
+            case BREAKING:
+                sleep(random(300,500));
                 break;
 
             default:
@@ -469,8 +484,12 @@ public class AccountTrainer extends Script {
     @Override
     public void onMessage(Message msg){
         String message = msg.getMessage();
-        if (message.contains("just advanced")) {
-            levelUpDetected = true;
+        if (message.contains("just advanced your Attack level")) {
+            attackLevelUpDetected = true;
+        } else if (message.contains("just advanced your Strength level")) {
+            strengthLevelUpDetected = true;
+        } else if (message.contains("Welcome to Old School RuneScape")){
+            currentState = previousState;
         }
     }
 
@@ -479,8 +498,8 @@ public class AccountTrainer extends Script {
     }
 
     private void IfChangeAttackStyleNeeded() throws InterruptedException{
-        if (levelUpDetected == true){
-            randomUtil.gRandomBetween(300,1500);
+        if (attackLevelUpDetected == true){
+            randomUtil.gRandomBetween(1000,2500);
             if(data.GetAccountType() != Enums.AccountType.OBBY_MAUL){
                 if (attackStyleHandler.GetAttackStyle() == Enums.Styles.ATTACK){
                     if (data.CheckAttackLevelMilestone(GetLevel(Skill.ATTACK))){
@@ -497,16 +516,20 @@ public class AccountTrainer extends Script {
                         WeaponEquipmentSetup();
                         currentState = PlayerStates.WEAPONEQUIPMENT;
                     }
-                } else if (attackStyleHandler.GetAttackStyle() == Enums.Styles.STRENGTH) {
-                    if (data.CheckStrengthLevelMilestone(GetLevel(Skill.STRENGTH))) {
-                        if (GetLevel(Skill.ATTACK) < data.GetGoalAttackLevel()) {
-                            attackStyleHandler.SwitchAttackStyle(Enums.Styles.STRENGTH, Enums.Styles.ATTACK);
-                            data.SetCurrentStyle(Enums.Styles.ATTACK);
-                        }
+                }
+            }
+            attackLevelUpDetected = false;
+        }
+        if(strengthLevelUpDetected == true) {
+            randomUtil.gRandomBetween(1000,2500);
+            if (attackStyleHandler.GetAttackStyle() == Enums.Styles.STRENGTH) {
+                if (data.CheckStrengthLevelMilestone(GetLevel(Skill.STRENGTH))) {
+                    if (GetLevel(Skill.ATTACK) < data.GetGoalAttackLevel()) {
+                        attackStyleHandler.SwitchAttackStyle(Enums.Styles.STRENGTH, Enums.Styles.ATTACK);
+                        data.SetCurrentStyle(Enums.Styles.ATTACK);
                     }
                 }
             }
-            levelUpDetected = false;
         }
     }
 
@@ -522,6 +545,15 @@ public class AccountTrainer extends Script {
         WeaponEquipmentSetup();
         WithdrawInventory();
         currentState = PlayerStates.WALKTOSPOT;
+    }
+
+    private boolean CheckTimeTilBreak(){
+        int minsUntilBreak = getBot().getRandomExecutor().getTimeUntilBreak();
+        if(minsUntilBreak == 0){
+            log("Break approaching");
+            return true;
+        }
+        return false;
     }
 
     /**
