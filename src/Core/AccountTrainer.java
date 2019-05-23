@@ -116,22 +116,12 @@ public class AccountTrainer extends Script {
 
     @Override
     public int onLoop() throws InterruptedException {
-        log("Current " + currentState);
-        log("Prev " + previousState);
-        if (currentState != PlayerStates.BREAKING && CheckTimeTilBreak() == true){
+        if (currentState != PlayerStates.BREAKING && CheckTimeTilBreak()){
             previousState = currentState;
             currentState = PlayerStates.BREAKING;
         } else {
-            if (myPlayer().getHealthPercent() < randomUtil.gRandomBetween(15, 35)) {
-                sleep(randomUtil.gRandomBetween(500, 3000));
-                EatFood();
-            }
-            new ConditionalSleep(5000) {
-                @Override
-                public boolean condition() {
-                    return !myPlayer().isAnimating();
-                }
-            }.sleep();
+            CheckNeedToEat(15, 35);
+
 
             if (settings.getRunEnergy() > random(20, 45) && !settings.isRunning() && !myPlayer().isUnderAttack()) {
                 settings.setRunning(true);
@@ -534,12 +524,22 @@ public class AccountTrainer extends Script {
         strengthLevelUpDetected = false;
     }
 
-    private void EatFood() throws InterruptedException {
-        List<Item> food = inventory.filter( item -> item.hasAction("Eat") );
-        if (!food.isEmpty()){
-            food.get(0).interact("Eat");
+    private void CheckNeedToEat(int min, int max) throws InterruptedException {
+        if (myPlayer().getHealthPercent() < randomUtil.gRandomBetween(min, max)) {
+            sleep(randomUtil.gRandomBetween(500, 3000));
+
+            List<Item> food = inventory.filter( item -> item.hasAction("Eat") );
+            if (!food.isEmpty()){
+                food.get(0).interact("Eat");
+            }
+            new ConditionalSleep(5000) {
+                @Override
+                public boolean condition() {
+                    return !myPlayer().isAnimating();
+                }
+            }.sleep();
+            sleep(500);
         }
-        sleep(500);
     }
 
     private void Banking() throws InterruptedException {
