@@ -5,7 +5,7 @@ import org.osbot.rs07.api.map.constants.Banks;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.utility.ConditionalSleep;
 import java.util.Map;
-import java.util.Map.Entry;
+import Utilities.RandomUtil;
 
 import java.util.HashMap;
 
@@ -109,8 +109,15 @@ public class BankingHandler {
     public void WithdrawItem(String item, int amount) throws InterruptedException {
         WalkToBank();
         OpenBank();
-        if (script.getBank().contains(item)){
-            script.getBank().withdraw(item, amount);
+        if (script.getBank().contains(item) && script.getBank().getAmount(item) >= amount){
+            RandomUtil rand = new RandomUtil();
+            int rollForWithdrawalMethod = rand.gRandomBetween(1,3);
+
+            if(rollForWithdrawalMethod == 1){ // randomise withdrawal method
+                script.getBank().withdrawAllButOne(item);
+            } else {
+                script.getBank().withdraw(item, amount);
+            }
         } else {
             script.log("Item not found");
             script.stop();

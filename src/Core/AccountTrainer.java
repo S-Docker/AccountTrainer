@@ -120,6 +120,11 @@ public class AccountTrainer extends Script {
             previousState = currentState;
             currentState = PlayerStates.BREAKING;
         } else {
+            int rollForAfk = random(1,200);
+            if (rollForAfk == 200) {
+                SimulateAfk();
+            }
+
             CheckNeedToEat(15, 35);
 
 
@@ -318,7 +323,7 @@ public class AccountTrainer extends Script {
         if(data.GetAccountType() == Enums.AccountType.OBBY_MAUL) {
         attackStyleHandler.SwitchAttackStyle(data.GetCurrentStyle(), Enums.Styles.STRENGTH);
         data.SetCurrentStyle(Enums.Styles.STRENGTH);
-            sleep(randomUtil.gRandomBetween(300, 500));
+        sleep(randomUtil.gRandomBetween(300, 500));
             if (!getEquipment().isWearingItem(EquipmentSlot.WEAPON, "Event rpg")) {
                 if (inventory.contains("Event rpg")){
                     getInventory().getItem("Event rpg").interact("Wield");
@@ -451,6 +456,12 @@ public class AccountTrainer extends Script {
         if (!myPlayer().isMoving() && !myPlayer().isUnderAttack() && cow != null && !getCombat().isFighting()) {
             sleep(randomUtil.gRandomBetween(300, 500));
             cow.interact("Attack");
+
+            int MoveMouseOutsideScreenRoll = randomUtil.gRandomBetween(1, 10);
+
+            if (MoveMouseOutsideScreenRoll == 10){
+                getMouse().moveOutsideScreen();
+            }
             new ConditionalSleep(5000) {
                 @Override
                 public boolean condition() {
@@ -466,9 +477,8 @@ public class AccountTrainer extends Script {
             }
         }
     }
-    private void SimulateAfk(PlayerStates previousState) throws InterruptedException {
+    private void SimulateAfk() throws InterruptedException {
         sleep(randomUtil.gRandomBetween(1000, 30000));
-        currentState = previousState;
     }
 
     @Override
