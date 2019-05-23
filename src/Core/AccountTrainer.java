@@ -531,6 +531,7 @@ public class AccountTrainer extends Script {
                 }
             }
         }
+        strengthLevelUpDetected = false;
     }
 
     private void EatFood() throws InterruptedException {
